@@ -5,7 +5,7 @@ import multer from 'multer';
 import GridFsStorage from 'multer-gridfs-storage';
 import Grid from 'gridfs-stream';
 import bodyParser from 'body-parser';
-import path, { resolve } from 'path';
+import path from 'path';
 import Pusher from 'pusher';
 
 import mongoPost from './postModel.js'
@@ -15,6 +15,14 @@ Grid.mongo = mongoose.mongo
 
 const app = express();
 const port = process.env.PORT || 9000
+
+const pusher = new Pusher({
+    appId: "1104014",
+    key: "531526cd11f8bad1a1ef",
+    secret: "ac729f9dda43e585272c",
+    cluster: "eu",
+    useTLS: true
+  });
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -31,6 +39,19 @@ let gfs
 
 conn.once('open', () => {
     console.log('DB Connected');
+
+    const changeStream = mongoose.connection.collection('post').watch()
+
+    changeStream.on('change', (change) =>{
+        if(change.operationType=== 'insert'){
+
+            pusher.trigger('posts', 'inserted', {
+                change: change
+            })
+        }else{
+            console.log('Error triggering pusher')
+        }
+    })
 
     gfs = Grid(conn.db, mongoose.mongo)
     gfs.collection('images')
@@ -84,7 +105,7 @@ app.get('/retrieve/posts', (req,res) =>{
             res.status(500).send(err)
         }else{
             data.sort((b,a) =>{
-                return a.timestamp - randomBytes.timestamp
+                return a.timestamp - b.timestamp
             })
 
             res.status(200).send(data)
