@@ -37,7 +37,7 @@ conn.once('open', () => {
 })
 
 const storage = new GridFsStorage({
-    uri: mongoURI,
+    url: mongoURI,
     file: (req, file) => {
         return new Promise((resolve, reject) => {
             const filename = `image-${Date.now()}${path.extname(file.originalname)}`
