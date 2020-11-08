@@ -40,9 +40,9 @@ let gfs
 conn.once('open', () => {
     console.log('DB Connected');
 
-    const changeStream = mongoose.connection.collection('post').watch()
+    //const changeStream = mongoose.connection.collection('post').watch()
 
-    changeStream.on('change', (change) =>{
+    /*changeStream.on('change', (change) =>{
         if(change.operationType=== 'insert'){
 
             pusher.trigger('posts', 'inserted', {
@@ -51,7 +51,7 @@ conn.once('open', () => {
         }else{
             console.log('Error triggering pusher')
         }
-    })
+    }) */
 
     gfs = Grid(conn.db, mongoose.mongo)
     gfs.collection('images')
