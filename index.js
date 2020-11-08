@@ -8,8 +8,7 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import Pusher from 'pusher';
 
-import mongoPost from './postModel.js'
-import { randomBytes } from 'crypto';
+import mongoPosts from './postModel.js'
 
 Grid.mongo = mongoose.mongo
 
@@ -35,14 +34,10 @@ const conn = mongoose.createConnection(mongoURI, {
     useUnifiedTopology: true
 });
 
-let gfs
+mongoose.connection.once('open', () => {
+    const changeStream = mongoose.connection.collection('post').watch()
 
-conn.once('open', () => {
-    console.log('DB Connected');
-
-    //const changeStream = mongoose.connection.collection('post').watch()
-
-    /*changeStream.on('change', (change) =>{
+    changeStream.on('change', (change) =>{
         if(change.operationType=== 'insert'){
 
             pusher.trigger('posts', 'inserted', {
@@ -51,7 +46,15 @@ conn.once('open', () => {
         }else{
             console.log('Error triggering pusher')
         }
-    }) */
+    }) 
+})
+
+let gfs
+
+conn.once('open', () => {
+    console.log('DB Connected');
+
+    
 
     gfs = Grid(conn.db, mongoose.mongo)
     gfs.collection('images')
@@ -105,8 +108,8 @@ app.get('/retrieve/posts', (req,res) =>{
             res.status(500).send(err)
         }else{
             data.sort((b,a) =>{
-                return a.timestamp - b.timestamp
-            })
+                return a.timestamp - b.timestamp;
+            });
 
             res.status(200).send(data)
         }
