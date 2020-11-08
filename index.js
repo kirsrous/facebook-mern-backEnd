@@ -79,7 +79,7 @@ app.post('/upload/post', (req, res) => {
 })
 
 app.get('/retrieve/posts', (req,res) =>{
-    mongoPost.find((err,data) =>{
+    mongoPosts.find((err,data) =>{
         if(err) {
             res.status(500).send(err)
         }else{
